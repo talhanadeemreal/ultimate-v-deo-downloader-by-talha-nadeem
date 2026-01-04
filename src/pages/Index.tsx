@@ -14,19 +14,27 @@ const Index = () => {
   const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [currentUrl, setCurrentUrl] = useState<string>("");
   const { toast } = useToast();
 
   const handleAnalyze = async (url: string) => {
     setIsAnalyzing(true);
     setVideoInfo(null);
+    setCurrentUrl(url);
 
     try {
-      const { data, error } = await supabase.functions.invoke("analyze-video", {
-        body: { url },
+      const response = await fetch("http://localhost:3000/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url }),
       });
 
-      if (error) {
-        throw new Error(error.message);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to analyze video");
       }
 
       if (!data.success) {
@@ -55,23 +63,11 @@ const Index = () => {
     setDownloadingId(format.id);
 
     try {
-      const { data, error } = await supabase.functions.invoke("download-video", {
-        body: { 
-          formatId: format.id,
-          videoInfo: videoInfo
-        },
-      });
+      const downloadUrl = `http://localhost:3000/download?url=${encodeURIComponent(
+        currentUrl
+      )}&formatId=${format.id}`;
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (!data.success || !data.downloadUrl) {
-        throw new Error(data.error || "Failed to get download link");
-      }
-
-      // Open the download URL in a new tab
-      window.open(data.downloadUrl, "_blank");
+      window.open(downloadUrl, "_blank");
 
       toast({
         title: "Download Started",
@@ -81,7 +77,7 @@ const Index = () => {
       console.error("Download error:", error);
       toast({
         title: "Download Failed",
-        description: error instanceof Error ? error.message : "Could not start the download.",
+        description: "Could not start the download.",
         variant: "destructive",
       });
     } finally {
