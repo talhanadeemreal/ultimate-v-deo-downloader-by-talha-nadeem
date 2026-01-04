@@ -1,0 +1,7 @@
+project_id = "tsfpwrabxiqzsikzafdj"
+
+[functions.analyze-video]
+verify_jwt = false
+
+[functions.download-video]
+verify_jwt = false
