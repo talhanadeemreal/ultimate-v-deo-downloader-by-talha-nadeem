@@ -1,9 +1,14 @@
 
-const express = require('express');
-const cors = require('cors');
-const YTDlpWrap = require('yt-dlp-wrap').default;
-const path = require('path');
-const fs = require('fs');
+import express from 'express';
+import cors from 'cors';
+import YTDlpWrap from 'yt-dlp-wrap';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const port = 3000;
@@ -14,7 +19,7 @@ app.use(express.json());
 
 // Initialize yt-dlp
 const ytDlpBinaryPath = path.join(__dirname, 'yt-dlp');
-const ytDlpWrap = new YTDlpWrap();
+const ytDlpWrap = new YTDlpWrap.default();
 
 // Ensure yt-dlp binary exists
 const ensureYtDlp = async () => {
@@ -22,7 +27,7 @@ const ensureYtDlp = async () => {
         // Check if binary exists
         if (!fs.existsSync(ytDlpBinaryPath)) {
             console.log('Downloading yt-dlp binary...');
-            await YTDlpWrap.downloadFromGithub(ytDlpBinaryPath);
+            await YTDlpWrap.default.downloadFromGithub(ytDlpBinaryPath);
             console.log('yt-dlp binary downloaded successfully');
         }
         ytDlpWrap.setBinaryPath(ytDlpBinaryPath);
@@ -37,7 +42,7 @@ ensureYtDlp();
 const mapFormat = (f) => {
     const isVideo = f.vcodec !== 'none' && f.video_ext !== 'none';
     const isAudio = f.acodec !== 'none' && f.audio_ext !== 'none';
-    
+
     // Skip if neither (e.g. some manifests)
     if (!isVideo && !isAudio) return null;
 
@@ -80,7 +85,7 @@ app.post('/analyze', async (req, res) => {
     try {
         console.log('Analyzing:', url);
         const metadata = await ytDlpWrap.getVideoInfo(url);
-        
+
         let formats = [];
         if (metadata.formats) {
             formats = metadata.formats
@@ -107,9 +112,9 @@ app.post('/analyze', async (req, res) => {
 
     } catch (error) {
         console.error('Analysis error:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message || 'Failed to analyze video' 
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to analyze video'
         });
     }
 });
@@ -123,19 +128,19 @@ app.get('/download', async (req, res) => {
 
     try {
         console.log(`Downloading ${url} format ${formatId}`);
-        
+
         // Get metadata first to get filename
         const metadata = await ytDlpWrap.getVideoInfo(url);
         const title = metadata.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-        
+
         // Find extension
         const format = metadata.formats.find(f => f.format_id === formatId);
         const ext = format ? format.ext : 'mp4';
-        
+
         const filename = `${title}.${ext}`;
 
         res.header('Content-Disposition', `attachment; filename="${filename}"`);
-        
+
         const command = ytDlpWrap.execStream([
             url,
             '-f', formatId
