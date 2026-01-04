@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Platform } from "@/components/PlatformIcon";
 import { supabase } from "@/integrations/supabase/client";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:3000" : "https://video-downloader-backend-e7ls.onrender.com");
 
 const Index = () => {
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null);
