@@ -3,6 +3,7 @@ FROM node:18-slim
 # Install Python 3, pip, and FFmpeg
 RUN apt-get update && \
     apt-get install -y python3 python3-pip ffmpeg && \
+    pip3 install yt-dlp && \
     rm -rf /var/lib/apt/lists/*
 
 # Set working directory
