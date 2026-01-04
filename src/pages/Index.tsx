@@ -8,7 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Platform } from "@/components/PlatformIcon";
 import { supabase } from "@/integrations/supabase/client";
 
-const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:3000" : "https://video-downloader-backend-e7ls.onrender.com");
+// For now, default to the production server since local server setup is difficult
+const API_URL = import.meta.env.VITE_API_URL || "https://video-downloader-backend-e7ls.onrender.com";
 
 const Index = () => {
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null);

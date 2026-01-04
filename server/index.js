@@ -18,25 +18,14 @@ app.use(cors());
 app.use(express.json());
 
 // Initialize yt-dlp
-const ytDlpBinaryPath = path.join(__dirname, 'yt-dlp');
-const ytDlpWrap = new YTDlpWrap.default();
+// In Docker, we install yt-dlp via pip, so it's in the system PATH.
+// We just initialize the wrapper with the command name.
+const ytDlpWrap = new YTDlpWrap.default('yt-dlp');
 
-// Ensure yt-dlp binary exists
-const ensureYtDlp = async () => {
-    try {
-        // Check if binary exists
-        if (!fs.existsSync(ytDlpBinaryPath)) {
-            console.log('Downloading yt-dlp binary...');
-            await YTDlpWrap.default.downloadFromGithub(ytDlpBinaryPath);
-            console.log('yt-dlp binary downloaded successfully');
-        }
-        ytDlpWrap.setBinaryPath(ytDlpBinaryPath);
-    } catch (error) {
-        console.error('Failed to setup yt-dlp:', error);
-    }
-};
-
-ensureYtDlp();
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // Map yt-dlp format to our VideoFormat interface
 const mapFormat = (f) => {
