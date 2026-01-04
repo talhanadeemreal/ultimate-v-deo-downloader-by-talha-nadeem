@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Platform } from "@/components/PlatformIcon";
 import { supabase } from "@/integrations/supabase/client";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 const Index = () => {
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -23,7 +25,7 @@ const Index = () => {
     setCurrentUrl(url);
 
     try {
-      const response = await fetch("http://localhost:3000/analyze", {
+      const response = await fetch(`${API_URL}/analyze`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -63,7 +65,7 @@ const Index = () => {
     setDownloadingId(format.id);
 
     try {
-      const downloadUrl = `http://localhost:3000/download?url=${encodeURIComponent(
+      const downloadUrl = `${API_URL}/download?url=${encodeURIComponent(
         currentUrl
       )}&formatId=${format.id}`;
 
